@@ -28,6 +28,7 @@ pub fn process_fund_all(args: &Args, fund_all_args: &FundAllArgs) {
 fn fund_all(args: &Args, fund_all_args: &FundAllArgs) -> Result<()> {
     let program = args.get_program_client();
     let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::finalized());
+    let send_client = RpcClient::new_with_commitment(&args.extra_send_rpc_url, CommitmentConfig::confirmed());
     let keypair = read_keypair_file(&args.keypair_path.clone().unwrap()).unwrap();
     let mut paths: Vec<_> = fs::read_dir(&fund_all_args.merkle_tree_path)
         .unwrap()
@@ -88,7 +89,7 @@ fn fund_all(args: &Args, fund_all_args: &FundAllArgs) -> Result<()> {
             client.get_latest_blockhash().unwrap(),
         );
 
-        match client.send_and_confirm_transaction_with_spinner(&tx) {
+        match send_transaction::send_transaction(&tx, &client, &send_client) {
             Ok(_) => {
                 println!(
                     "done fund distributor version {} {:?}",
