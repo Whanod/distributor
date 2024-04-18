@@ -146,4 +146,5 @@ data/distributor-info.json
 keys/
 *.csv
 list/
-*.json
+keys/**/*.json
+kmno_trees/
