@@ -1,5 +1,4 @@
-# syntax=docker/dockerfile:1.4.0
-FROM --platform=linux/amd64 rust:1.69.0-slim-bullseye as builder
+FROM lukemathwalker/cargo-chef:latest-rust-slim-bullseye AS chef
 
 RUN apt-get update \
     && apt-get -y install \
@@ -13,23 +12,33 @@ RUN apt-get update \
     libpq-dev \
     curl
 
-RUN rustup component add rustfmt && update-ca-certificates
+WORKDIR distributor
 
-ENV HOME=/home/root
-WORKDIR $HOME/app
+FROM chef AS prepare
+
 COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-# cache these directories for reuse
-# see: https://docs.docker.com/build/cache/#use-the-dedicated-run-cache
-RUN --mount=type=cache,mode=0777,target=/home/root/app/target \
-    --mount=type=cache,mode=0777,target=/usr/local/cargo/registry \
-    --mount=type=cache,mode=0777,target=/usr/local/cargo/git \
-    cargo build --release --bin kamino-airdrop-api && cp target/release/kamino-airdrop-api ./
+FROM chef AS build
 
-FROM --platform=linux/amd64 debian:bullseye-slim as base_image
+COPY --from=prepare /distributor/recipe.json recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --bin kamino-airdrop-api --recipe-path recipe.json
+
+# Build application
+COPY . .
+RUN cargo build --release --bin kamino-airdrop-api --locked
+
+FROM debian:bullseye-slim AS runtime
+
 RUN apt-get update && apt-get install -y libssl1.1 libpq-dev ca-certificates && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 
-FROM base_image as kamino-airdrop-api
-WORKDIR /app
-COPY --from=builder /home/root/app/kamino-airdrop-api ./
+COPY --from=build /distributor/target/release/kamino-airdrop-api ./
+
 ENTRYPOINT ["./kamino-airdrop-api"]
+
+# use scratch to dump binary from
+FROM scratch AS release-bin
+
+COPY --from=runtime /kamino-airdrop-api .

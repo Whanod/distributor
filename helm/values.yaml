@@ -1,0 +1,26 @@
+service-base-chart:
+  applicationName: kamino-airdrop-api
+  image:
+    repository: hubbleprotocol/kamino-airdrop-api
+    tag: latest
+  envVars: []
+   - name: MINT
+     value: Gg5Y6LvxzDMVxArK7mcGM2vB4fiwcvUnYnviLM2uqjVY
+   - name: MERKLE_TREE_PATH
+     value: ./kmno_trees
+   - name: BASE
+     value: 9oUYxqiU6qkDp4H5ZnPafPPSF3viUxYgFPeXU63uMnW4
+   - name: PROGRAM_ID
+     value: KdisqEcXbXKaTrBFqeDLhMmBvymLTwj9GmhDcdJyGat 
+
+  containerPorts:
+  - name: http
+    containerPort: 7001
+    protocol: TCP
+
+  startupProbe:
+    path: /
+  livenessProbe:
+    path: /
+  readinessProbe:
+    path: /
