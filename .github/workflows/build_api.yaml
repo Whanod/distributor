@@ -88,7 +88,7 @@ jobs:
           token: ${{ secrets.HUBBLEPROTOCOLBOT_WRITE_REPO_PAT }}
           repository: hubbleprotocol/hubble-infrastructure
           event-type: helm-release
-          client-payload: '{"name": "kamino-airdrop-api", "namespace": "bot", "sub_dir": "kamino-airdrop-api", "build_version": "${{ needs.build_docker.outputs.build_version }}", "release_version": "${{ needs.build_docker.outputs.release_version }}", "changelog_url": "${{ github.server_url }}/${{ github.repository }}/releases/tag/yvaults-investing-bot%2F${{ needs.build_docker.outputs.release_version }}", "envs": ["dev", "prod"]}'
+          client-payload: '{"name": "kamino-airdrop-api", "namespace": "api", "sub_dir": "kamino-airdrop-api", "build_version": "${{ needs.build_docker.outputs.build_version }}", "release_version": "${{ needs.build_docker.outputs.release_version }}", "changelog_url": "${{ github.server_url }}/${{ github.repository }}/releases/tag/kamino-airdrop-api%2F${{ needs.build_docker.outputs.release_version }}", "envs": ["dev", "prod"]}'
   pre_release:
     if: ${{ github.ref == 'refs/heads/master' }}
     needs:
