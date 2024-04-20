@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - 'release/**'
   pull_request:
     branches:
       - master
@@ -74,6 +73,7 @@ jobs:
             "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_HELM_REPO }}"
           build-args: |
             "CHART=kamino-airdrop-api"
+            "DIR=api"
             "BUILD_VERSION=${{ needs.build_docker.outputs.build_version }}"
   publish_release_events:
     if: ${{ github.ref == 'refs/heads/master' }}

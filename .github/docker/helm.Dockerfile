@@ -1,9 +1,10 @@
 FROM hubbleprotocol/helm:0.0.2
 
 ARG CHART
+ARG DIR=$CHART
 ARG BUILD_VERSION
 
-COPY /$CHART/helm /build/helm
+COPY /$DIR/helm /build/helm
 COPY /.github/scripts /build/scripts
 WORKDIR /build/helm
 
