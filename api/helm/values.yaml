@@ -3,7 +3,7 @@ service-base-chart:
   image:
     repository: hubbleprotocol/kamino-airdrop-api
     tag: latest
-  envVars: []
+  envVars:
    - name: MINT
      value: Gg5Y6LvxzDMVxArK7mcGM2vB4fiwcvUnYnviLM2uqjVY
    - name: MERKLE_TREE_PATH
