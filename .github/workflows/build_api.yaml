@@ -109,8 +109,6 @@ jobs:
         id: fetch_release_bin
         uses: docker/build-push-action@v4
         with:
-          ssh: |
-            default=${{ env.SSH_AUTH_SOCK }}
           file: ./Dockerfile
           tags: hubbleprotocol/kamino-airdrop-api-release-bin:${{ needs.build_docker.outputs.build_version }}
           push: false

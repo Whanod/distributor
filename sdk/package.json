@@ -1,9 +1,9 @@
 {
-  "name": "@hubbleprotocol/distributor-sdk",
+  "name": "@hubbleprotocol/distributor",
   "description": "Distributor SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
@@ -43,5 +43,8 @@
   "peerDependencies": {
     "@solana/web3.js": "~1.73.3",
     "decimal.js": "^10.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
