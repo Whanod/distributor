@@ -66,9 +66,9 @@ pub fn get_routes(state: Arc<RouterState>) -> Router {
         );
 
     let router = Router::new()
-        .route("/", get(root))
-        .route("/distributors", get(get_distributors))
-        .route("/user/:user_pubkey", get(get_user_info));
+        .route("/health", get(root))
+        .route("/distributor/distributors", get(get_distributors))
+        .route("/distributor/user/:user_pubkey", get(get_user_info));
 
     router.layer(middleware).with_state(state)
 }
