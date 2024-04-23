@@ -21,6 +21,14 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS build
 
+RUN apt-get install -y awscli
+
+RUN --mount=type=secret,id=aws_access_key_id \
+    --mount=type=secret,id=aws_secret_access_key \
+    AWS_ACCESS_KEY_ID=$(cat /run/secrets/aws_access_key_id) \
+    AWS_SECRET_ACCESS_KEY=$(cat /run/secrets/aws_secret_access_key) \
+    aws s3 sync s3://k8s.hubbleprotocol.io-kamino-distributor/Gg5Y6LvxzDMVxArK7mcGM2vB4fiwcvUnYnviLM2uqjVY ./kmno_trees
+
 COPY --from=prepare /distributor/recipe.json recipe.json
 
 # Build dependencies - this is the caching Docker layer!
@@ -35,6 +43,10 @@ FROM debian:bullseye-slim AS runtime
 RUN apt-get update && apt-get install -y libssl1.1 libpq-dev ca-certificates && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /distributor/target/release/kamino-airdrop-api ./
+
+COPY --from=build /distributor/kmno_trees ./distributor/kmno_trees/
+
+RUN rm ./distributor/kmno_trees/.DS_Store
 
 ENTRYPOINT ["./kamino-airdrop-api"]
 
