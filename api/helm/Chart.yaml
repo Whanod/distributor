@@ -1,0 +1,9 @@
+apiVersion: v2
+name: kamino-airdrop-api
+description: Distributor API
+type: application
+version: 0.0.1
+dependencies:
+  - name: service-base-chart
+    version: 0.1.0
+    repository: "@hubbleprotocol"
