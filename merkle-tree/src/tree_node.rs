@@ -34,7 +34,9 @@ impl TreeNode {
 
 /// Converts a ui amount to a token amount (with decimals)
 fn ui_amount_to_token_amount(amount: f64, decimals: u32) -> u64 {
-    amount.mul(10u64.checked_pow(decimals).unwrap() as f64).floor() as u64
+    amount
+        .mul(10u64.checked_pow(decimals).unwrap() as f64)
+        .floor() as u64
 }
 
 impl TreeNode {

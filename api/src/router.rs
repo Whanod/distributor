@@ -14,7 +14,7 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use http::Request;
+use http::{header::CACHE_CONTROL, HeaderValue, Method, Request};
 use jito_merkle_tree::{airdrop_merkle_tree::UserProof, tree_node::TreeNode};
 use serde_derive::{Deserialize, Serialize};
 use solana_program::pubkey::Pubkey;
@@ -23,6 +23,8 @@ use tower::{
     ServiceBuilder,
 };
 use tower_http::{
+    cors::{Any, CorsLayer},
+    set_header::SetResponseHeaderLayer,
     trace::{DefaultOnResponse, TraceLayer},
     LatencyUnit,
 };
@@ -47,7 +49,18 @@ impl Debug for RouterState {
 
 #[instrument]
 pub fn get_routes(state: Arc<RouterState>) -> Router {
+    let cors_layer = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::GET]);
+
+    let cache_control_layer = SetResponseHeaderLayer::overriding(
+        CACHE_CONTROL,
+        HeaderValue::from_static("public,max-age=3600,s-maxage=3600,stale-if-error=36000"),
+    );
+
     let middleware = ServiceBuilder::new()
+        .layer(cors_layer)
+        .layer(cache_control_layer)
         .layer(HandleErrorLayer::new(error::handle_error))
         .layer(BufferLayer::new(10000))
         .layer(RateLimitLayer::new(10000, Duration::from_secs(1)))

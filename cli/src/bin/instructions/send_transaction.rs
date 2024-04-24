@@ -5,9 +5,9 @@ use solana_rpc_client::rpc_client::{RpcClient, SerializableTransaction};
 use solana_sdk::{commitment_config::CommitmentConfig, transaction::Transaction};
 
 pub(crate) fn send_transaction(
-  transaction: &Transaction,
-  client: &RpcClient,
-  send_client: &RpcClient,
+    transaction: &Transaction,
+    client: &RpcClient,
+    send_client: &RpcClient,
 ) -> solana_client::client_error::Result<()> {
     let result = client.simulate_transaction(transaction)?;
     println!("Simulate result: {:#?}", result.value);
@@ -45,5 +45,5 @@ pub(crate) fn send_transaction(
             break;
         }
     }
-  Ok(())
+    Ok(())
 }
