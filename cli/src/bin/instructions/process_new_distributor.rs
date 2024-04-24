@@ -31,7 +31,8 @@ pub fn process_new_distributor(args: &Args, new_distributor_args: &NewDistributo
 
 fn create_new_distributor(args: &Args, new_distributor_args: &NewDistributorArgs) -> Result<()> {
     let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::confirmed());
-    let send_client = RpcClient::new_with_commitment(&args.extra_send_rpc_url, CommitmentConfig::confirmed());
+    let send_client =
+        RpcClient::new_with_commitment(&args.extra_send_rpc_url, CommitmentConfig::confirmed());
     let keypair = read_keypair_file(&args.keypair_path.clone().unwrap()).unwrap();
     let base = read_keypair_file(&new_distributor_args.base_path).unwrap();
     let mut paths: Vec<_> = fs::read_dir(&new_distributor_args.merkle_tree_path)

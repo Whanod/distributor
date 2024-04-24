@@ -1,5 +1,4 @@
 import * as anchor from "@coral-xyz/anchor";
-import * as FarmsErrors from "./rpc_client/errors";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import {
   Connection,
@@ -7,7 +6,6 @@ import {
   PublicKey,
   TransactionInstruction,
   Transaction,
-  Signer,
   ComputeBudgetProgram,
 } from "@solana/web3.js";
 import { Decimal } from "decimal.js";
@@ -15,7 +13,6 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
 } from "@solana/spl-token";
-import * as web3 from "@solana/web3.js";
 import DISTRIBUTORIDL from "./rpc_client/merkle_distributor.json";
 
 export const DISTRIBUTOR_IDL = DISTRIBUTORIDL as anchor.Idl;
