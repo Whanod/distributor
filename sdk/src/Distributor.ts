@@ -15,7 +15,7 @@ import {
 import Decimal from "decimal.js";
 import { PROGRAM_ID } from "./rpc_client/programId";
 import { ClaimStatus, MerkleDistributor } from "./rpc_client/accounts";
-import { NewClaimAccounts } from './rpc_client/instructions/newClaim';
+import { NewClaimAccounts } from "./rpc_client/instructions/newClaim";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 export class Distributor {
@@ -35,10 +35,20 @@ export class Distributor {
     return this._distributorProgramId;
   }
 
-  async userClaimed(merkleDistributorAddress: PublicKey, user: PublicKey): Promise<boolean> {
-    const claimStatusAddress = getClaimStatusPDA(user, merkleDistributorAddress, this.getProgramID());
+  async userClaimed(
+    merkleDistributorAddress: PublicKey,
+    user: PublicKey,
+  ): Promise<boolean> {
+    const claimStatusAddress = getClaimStatusPDA(
+      user,
+      merkleDistributorAddress,
+      this.getProgramID(),
+    );
 
-    const claimStatus = await ClaimStatus.fetch(this.getConnection(), claimStatusAddress);
+    const claimStatus = await ClaimStatus.fetch(
+      this.getConnection(),
+      claimStatusAddress,
+    );
     if (!claimStatus) {
       return false;
     } else {
@@ -46,13 +56,30 @@ export class Distributor {
     }
   }
 
-  async getNewClaimIx(merkleDistributorAddress: PublicKey, user: PublicKey, amountLamports: number, proof: number[][]): Promise<TransactionInstruction[]> {
-    const claimStatusAddress = getClaimStatusPDA(user, merkleDistributorAddress, this.getProgramID(),);
-    const merkleDistributor = await MerkleDistributor.fetch(this._connection, merkleDistributorAddress);
-    const userAta = await getAssociatedTokenAddress(user, merkleDistributor?.mint!);
+  async getNewClaimIx(
+    merkleDistributorAddress: PublicKey,
+    user: PublicKey,
+    amountLamports: number,
+    proof: number[][],
+  ): Promise<TransactionInstruction[]> {
+    const claimStatusAddress = getClaimStatusPDA(
+      user,
+      merkleDistributorAddress,
+      this.getProgramID(),
+    );
+    const merkleDistributor = await MerkleDistributor.fetch(
+      this._connection,
+      merkleDistributorAddress,
+    );
+    const userAta = await getAssociatedTokenAddress(
+      user,
+      merkleDistributor?.mint!,
+    );
     const ixs: TransactionInstruction[] = [];
-    if(!(await accountExist(this._connection, userAta))) {
-      ixs.push(await createAtaInstruction(user, merkleDistributor?.mint!, userAta));
+    if (!(await accountExist(this._connection, userAta))) {
+      ixs.push(
+        await createAtaInstruction(user, merkleDistributor?.mint!, userAta),
+      );
     }
 
     const accounts: NewClaimAccounts = {
@@ -76,23 +103,37 @@ export class Distributor {
     return ixs;
   }
 
-  async getMultipleDistributorStats(distributors: PublicKey[]): Promise<DistributionStats> {
+  async getMultipleDistributorStats(
+    distributors: PublicKey[],
+  ): Promise<DistributionStats> {
     const distributorsStats: DistributorStats[] = [];
     let distributionTotalClaimed: Decimal = new Decimal(0);
     let distributionMaxTotalClaim: Decimal = new Decimal(0);
     let distributionTotalUsers: number = 0;
     let distributionTotalUsersClaimed: number = 0;
 
-    const merkleDistributors = await MerkleDistributor.fetchMultiple(this._connection, distributors);
+    const merkleDistributors = await MerkleDistributor.fetchMultiple(
+      this._connection,
+      distributors,
+    );
 
     for (const [index, merkleDistributor] of merkleDistributors.entries()) {
-      if(!merkleDistributor) {
-        throw new Error(`Distributor ${distributors[index].toString()} not found`);
+      if (!merkleDistributor) {
+        throw new Error(
+          `Distributor ${distributors[index].toString()} not found`,
+        );
       }
-      const stats = this.getDistributorStats(merkleDistributor, distributors[index]);
+      const stats = this.getDistributorStats(
+        merkleDistributor,
+        distributors[index],
+      );
       distributorsStats.push(stats);
-      distributionTotalClaimed = distributionTotalClaimed.add(stats.totalClaimed);
-      distributionMaxTotalClaim = distributionMaxTotalClaim.add(stats.maxTotalClaim);
+      distributionTotalClaimed = distributionTotalClaimed.add(
+        stats.totalClaimed,
+      );
+      distributionMaxTotalClaim = distributionMaxTotalClaim.add(
+        stats.maxTotalClaim,
+      );
       distributionTotalUsers += stats.totalUsers;
       distributionTotalUsersClaimed += stats.totalUsersClaimed;
     }
@@ -106,20 +147,34 @@ export class Distributor {
     };
   }
 
-  async getSingleDistributorStats(distributorAddress: PublicKey): Promise<DistributorStats> {
-    const merkleDistributor = await MerkleDistributor.fetch(this._connection, distributorAddress);
-    if(!merkleDistributor) {
+  async getSingleDistributorStats(
+    distributorAddress: PublicKey,
+  ): Promise<DistributorStats> {
+    const merkleDistributor = await MerkleDistributor.fetch(
+      this._connection,
+      distributorAddress,
+    );
+    if (!merkleDistributor) {
       throw new Error("Distributor not found");
     }
 
-    return this.getDistributorStats(merkleDistributor, distributorAddress)
+    return this.getDistributorStats(merkleDistributor, distributorAddress);
   }
 
-  getDistributorStats(distributor: MerkleDistributor, distributorAddress: PublicKey): DistributorStats {
+  getDistributorStats(
+    distributor: MerkleDistributor,
+    distributorAddress: PublicKey,
+  ): DistributorStats {
     const totalClaimed = new Decimal(distributor.totalAmountClaimed.toString());
-    const maxTotalClaim = new Decimal(distributor.maxTotalClaim.toString()).sub(totalClaimed);
-    const totalUsersClaimed =  new Decimal(distributor.numNodesClaimed.toString()).toNumber();
-    const totalUsers = new Decimal(distributor.maxNumNodes.toString()).toNumber();
+    const maxTotalClaim = new Decimal(distributor.maxTotalClaim.toString()).sub(
+      totalClaimed,
+    );
+    const totalUsersClaimed = new Decimal(
+      distributor.numNodesClaimed.toString(),
+    ).toNumber();
+    const totalUsers = new Decimal(
+      distributor.maxNumNodes.toString(),
+    ).toNumber();
 
     return {
       address: distributorAddress,
@@ -127,7 +182,7 @@ export class Distributor {
       maxTotalClaim,
       totalUsers,
       totalUsersClaimed,
-      state: distributor
+      state: distributor,
     };
   }
 }
@@ -147,4 +202,4 @@ export type DistributionStats = {
   distributionMaxTotalClaim: Decimal;
   distributionTotalUsers: number;
   distributionTotalUsersClaimed: number;
-}
+};

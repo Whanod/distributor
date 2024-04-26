@@ -9,11 +9,9 @@ import {
   ComputeBudgetProgram,
 } from "@solana/web3.js";
 import { Decimal } from "decimal.js";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  Token,
-} from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
 import DISTRIBUTORIDL from "./rpc_client/merkle_distributor.json";
+import * as fs from "fs";
 
 export const DISTRIBUTOR_IDL = DISTRIBUTORIDL as anchor.Idl;
 export const WAD = new Decimal("1".concat(Array(18 + 1).join("0")));
@@ -125,7 +123,10 @@ export function getClaimStatusPDA(
   return userState;
 }
 
-export function initializeClient(): { initialOwner: Keypair, provider: anchor.AnchorProvider } {
+export function initializeClient(): {
+  initialOwner: Keypair;
+  provider: anchor.AnchorProvider;
+} {
   const admin = process.env.ADMIN;
   const rpc = process.env.RPC;
   let resolvedRpc: string;
@@ -165,7 +166,7 @@ export function initializeClient(): { initialOwner: Keypair, provider: anchor.An
 
   return {
     initialOwner,
-    provider
+    provider,
   };
 }
 
@@ -192,33 +193,143 @@ export function createAddExtraComputeUnitFeeTransaction(
   return ixns;
 }
 
-export async function fetchUserDataFromApi(user: PublicKey, apiUrl: string): Promise<ClaimApiResponse> {
-  const headers: Headers = new Headers()
+export async function fetchUserDataFromApi(
+  user: PublicKey,
+  apiUrl: string,
+): Promise<ClaimApiResponse> {
+  const headers: Headers = new Headers();
   // Add a few headers
-  headers.set('Content-Type', 'application/json')
-  headers.set('Accept', 'application/json')
+  headers.set("Content-Type", "application/json");
+  headers.set("Accept", "application/json");
   // Add a custom header, which we can use to check
-  headers.set('X-Custom-Header', 'CustomValue')
+  headers.set("X-Custom-Header", "CustomValue");
 
-  // Create the request object, which will be a RequestInfo type. 
+  // Create the request object, which will be a RequestInfo type.
   // Here, we will pass in the URL as well as the options object as parameters.
-  const request: RequestInfo = new Request(apiUrl + '/user/' + user.toString(), {
-    method: 'GET',
-    headers: headers
-  })
+  const request: RequestInfo = new Request(
+    apiUrl + "/distributor/user/" + user.toString(),
+    {
+      method: "GET",
+      headers: headers,
+    },
+  );
 
-  return fetch(request)
-    // the JSON body is taken from the response
-    .then(res => res.json())
-    .then(res => {
-      // The response has an `any` type, so we need to cast
-      // it to the `User` type, and return it from the promise
-      return res as ClaimApiResponse
-    });
+  return (
+    fetch(request)
+      // the JSON body is taken from the response
+      .then(async (res) => {
+        return res.json();
+      })
+      .then((res) => {
+        // The response has an `any` type, so we need to cast
+        // it to the `User` type, and return it from the promise
+        return res as ClaimApiResponse;
+      })
+  );
 }
 
 export type ClaimApiResponse = {
   merkle_tree: string;
-  amount: number,
+  amount: number;
   proof: Array<Array<number>>;
+};
+
+export function readCsv(path: string, decimalsInCsv: string) {
+  const headers = ["pubkey", "amount"];
+  const fileContent = fs.readFileSync(path, { encoding: "utf-8" });
+  const userClaims: UserClaim[] = [];
+  const csvLines = fileContent.split("\n");
+  for (let lineIndex = 1; lineIndex < csvLines.length; lineIndex++) {
+    const line = csvLines[lineIndex];
+    const values = line.split(",");
+    if (values[0] && values[1]) {
+      userClaims.push({
+        address: new PublicKey(values[0]),
+        amount: new Decimal(Number(values[1]) * 10 ** Number(decimalsInCsv))
+          .floor()
+          .toNumber(),
+      });
+    }
+  }
+
+  return userClaims;
+}
+
+export type UserClaim = {
+  address: PublicKey;
+  amount: number;
+};
+
+export function readMerkleTreesDirectory(
+  path: string,
+): Map<string, ApiFormatData> {
+  const apiFormatDataMap = new Map<string, ApiFormatData>();
+
+  fs.readdirSync(path, { withFileTypes: true }).forEach((file) => {
+    if (file.isDirectory()) {
+      throw new Error("Wrong directory structure");
+    } else {
+      const farmConfigFromFile: MerkleTreeJsonFile = JSON.parse(
+        fs.readFileSync(file.path + "/" + file.name, "utf8"),
+      );
+
+      farmConfigFromFile.tree_nodes.forEach((claimant) => {
+        const claimantAddress = new PublicKey(claimant.claimant);
+        const amount = claimant.amount;
+        const proof = claimant.proof;
+
+        apiFormatDataMap.set(claimantAddress.toString(), {
+          amount,
+          proof,
+        });
+      });
+    }
+  });
+
+  return apiFormatDataMap;
+}
+
+type MerkleTreeJsonFile = {
+  merkle_root: Array<number>;
+  airdrop_version: number;
+  max_num_nodes: number;
+  max_total_claim: number;
+  tree_nodes: Array<ClaimantJson>;
+};
+
+type ClaimantJson = {
+  claimant: Array<number>;
+  amount: number;
+  proof: Array<Array<number>>;
+};
+
+export type ApiFormatData = {
+  amount: number;
+  proof: Array<Array<number>>;
+};
+
+export async function retryAsync(
+  fn: () => Promise<any>,
+  retriesLeft = 5,
+  interval = 2000,
+): Promise<any> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retriesLeft) {
+      await new Promise((resolve) => setTimeout(resolve, interval));
+      return await retryAsync(fn, retriesLeft - 1, interval);
+    }
+    throw error;
+  }
+}
+
+export function noopProfiledFunctionExecution(
+  promise: Promise<any>,
+): Promise<any> {
+  return promise;
+}
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
