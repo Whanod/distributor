@@ -19,10 +19,15 @@ This creates the proofs needed in order to create the actual merkleDistributors,
 #### Decide the config for the distributor
 
 --start-vesting-ts (As we don't have vesting, this can be set to anytime before end-vesting-ts)
+
 --end-vesting-ts (As we don't have vesting, this can be set to 1 day before clawback-start-ts, as this is a requirement at the SC level)
+
 --base-path (Path to a keypair that should be saved and used only for creating this distribution - ensuring uniqueness)
+
 --clawback-start-ts (The start time when tokens that haven't been claimed can be withdrawn, to the ata of the --clawback-receiver-owner)
+
 --clawback-receiver-owner (The account address that will receive - in it's token ATA - the token that haven't been withdrawn when the clawback happens )
+
 --enable-slot ( The slot in which claiming becomes available )
 
 - [ ] start-vesting-ts = 
