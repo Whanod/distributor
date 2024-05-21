@@ -1,4 +1,4 @@
-use solana_sdk::compute_budget::ComputeBudgetInstruction;
+use solana_sdk::{bs58, compute_budget::ComputeBudgetInstruction, message::Message};
 
 use crate::*;
 
@@ -24,17 +24,19 @@ pub fn process_set_enable_slot(args: &Args, set_enable_slot_args: &SetEnableSlot
             let mut ixs = vec![];
 
             // check priority fee
-            if let Some(priority_fee) = args.priority_fee {
-                ixs.push(ComputeBudgetInstruction::set_compute_unit_price(
-                    priority_fee,
-                ));
+            if !args.bs58 {
+                if let Some(priority_fee) = args.priority_fee {
+                    ixs.push(ComputeBudgetInstruction::set_compute_unit_price(
+                        priority_fee,
+                    ));
+                }
             }
 
             ixs.push(Instruction {
                 program_id: args.program_id,
                 accounts: merkle_distributor::accounts::SetEnableSlot {
                     distributor,
-                    admin: keypair.pubkey(),
+                    admin: distributor_state.admin,
                 }
                 .to_account_metas(None),
                 data: merkle_distributor::instruction::SetEnableSlot {
@@ -43,23 +45,28 @@ pub fn process_set_enable_slot(args: &Args, set_enable_slot_args: &SetEnableSlot
                 .data(),
             });
 
-            let tx = Transaction::new_signed_with_payer(
-                &ixs,
-                Some(&keypair.pubkey()),
-                &[&keypair],
-                client.get_latest_blockhash().unwrap(),
-            );
-
-            match client.send_and_confirm_transaction_with_spinner(&tx) {
-                Ok(signature) => {
-                    println!(
-                        "Successfully set enable slot {} airdrop version {} ! signature: {signature:#?}",
-                        set_enable_slot_args.slot, version
-                    );
-                    break;
-                }
-                Err(err) => {
-                    println!("airdrop version {} {}", version, err);
+            if args.bs58 {
+                let msg = Message::new(&ixs, Some(&distributor_state.admin));
+                println!("{}", bs58::encode(msg.serialize()).into_string());
+                break;
+            } else {
+                let tx = Transaction::new_signed_with_payer(
+                    &ixs,
+                    Some(&keypair.pubkey()),
+                    &[&keypair],
+                    client.get_latest_blockhash().unwrap(),
+                );
+                match client.send_and_confirm_transaction_with_spinner(&tx) {
+                    Ok(signature) => {
+                        println!(
+                            "Successfully set enable slot {} airdrop version {} ! signature: {signature:#?}",
+                            set_enable_slot_args.slot, version
+                        );
+                        break;
+                    }
+                    Err(err) => {
+                        println!("airdrop version {} {}", version, err);
+                    }
                 }
             }
         }

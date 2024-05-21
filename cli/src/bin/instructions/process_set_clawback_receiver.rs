@@ -1,4 +1,4 @@
-use solana_sdk::compute_budget::ComputeBudgetInstruction;
+use solana_sdk::{bs58, compute_budget::ComputeBudgetInstruction, message::Message};
 
 use crate::*;
 pub fn process_set_clawback_receiver(
@@ -46,39 +46,46 @@ pub fn process_set_clawback_receiver(
             }
             let mut ixs = vec![];
             // check priority fee
-            if let Some(priority_fee) = args.priority_fee {
-                ixs.push(ComputeBudgetInstruction::set_compute_unit_price(
-                    priority_fee,
-                ));
+            if !args.bs58 {
+                if let Some(priority_fee) = args.priority_fee {
+                    ixs.push(ComputeBudgetInstruction::set_compute_unit_price(
+                        priority_fee,
+                    ));
+                }
             }
             ixs.push(Instruction {
                 program_id: args.program_id,
                 accounts: merkle_distributor::accounts::SetClawbackReceiver {
                     distributor,
-                    admin: keypair.pubkey(),
+                    admin: distributor_state.admin,
                     new_clawback_account,
                 }
                 .to_account_metas(None),
                 data: merkle_distributor::instruction::SetClawbackReceiver {}.data(),
             });
 
-            let tx = Transaction::new_signed_with_payer(
-                &ixs,
-                Some(&keypair.pubkey()),
-                &[&keypair],
-                client.get_latest_blockhash().unwrap(),
-            );
-
-            match client.send_transaction(&tx) {
-                Ok(signature) => {
-                    println!(
-                        "Successfully set clawback receiver {} airdrop version {} ! signature: {signature:#?}",
-                        new_clawback_account, merkle_tree.airdrop_version
-                    );
-                    break;
-                }
-                Err(err) => {
-                    println!("airdrop version {} {}", merkle_tree.airdrop_version, err);
+            if args.bs58 {
+                let msg = Message::new(&ixs, Some(&distributor_state.admin));
+                println!("{}", bs58::encode(msg.serialize()).into_string());
+                break;
+            } else {
+                let tx = Transaction::new_signed_with_payer(
+                    &ixs,
+                    Some(&keypair.pubkey()),
+                    &[&keypair],
+                    client.get_latest_blockhash().unwrap(),
+                );
+                match client.send_transaction(&tx) {
+                    Ok(signature) => {
+                        println!(
+                            "Successfully set clawback receiver {} airdrop version {} ! signature: {signature:#?}",
+                            new_clawback_account, merkle_tree.airdrop_version
+                        );
+                        break;
+                    }
+                    Err(err) => {
+                        println!("airdrop version {} {}", merkle_tree.airdrop_version, err);
+                    }
                 }
             }
         }
