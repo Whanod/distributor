@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:latest-rust-slim-bullseye AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.73.0-slim-bookworm AS chef
 
 RUN apt-get update \
     && apt-get -y install \
@@ -28,18 +28,21 @@ FROM chef AS build
 COPY --from=prepare /distributor/recipe.json recipe.json
 
 # Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --bin kamino-airdrop-api --bin cli --recipe-path recipe.json
+RUN cargo chef cook --release --bin kamino-airdrop-api --recipe-path recipe.json
+RUN cargo chef cook --release --bin cli --recipe-path recipe.json
 
 # Build application
 COPY . .
 RUN cargo build --release --bin kamino-airdrop-api --bin cli --locked
+
+ENV AWS_DEFAULT_REGION="eu-west-1"
 
 # Download the merkle tree json files and convert them to blobs in one step to reduce cache layer size
 RUN --mount=type=secret,id=aws_access_key_id \
     --mount=type=secret,id=aws_secret_access_key \
     AWS_ACCESS_KEY_ID=$(cat /run/secrets/aws_access_key_id) \
     AWS_SECRET_ACCESS_KEY=$(cat /run/secrets/aws_secret_access_key) \
-    aws s3 sync s3://k8s.hubbleprotocol.io-kamino-distributor/KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS ./kmno_trees --exclude ".DS_Store" --include "*.json" \
+    aws s3 sync s3://k8s.hubbleprotocol.io-kamino-distributor/GwjzR5QkgBw4aQAxkJTCE6Uuw7za4kRn7x9Df45qCZkW ./kmno_trees --exclude ".DS_Store" --include "*.json" --debug \
     && ./target/release/cli create-merkle-tree-blob --json-path ./kmno_trees --merkle-tree-path ./kmno_tree_blobs \
     && rm -rf ./kmno_trees
 
