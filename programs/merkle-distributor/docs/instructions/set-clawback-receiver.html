@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Clawback Receiver - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link active">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Set Clawback Receiver Instruction</h1>
+        </div>
+        <p>The <code>set_clawback_receiver</code> instruction allows the admin to change the account that receives clawed back tokens.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction enables the admin to update the clawback receiver token account for a Merkle Distributor. The clawback receiver is the account that will receive tokens during a clawback operation.</p>
+        
+        <h2>Parameters</h2>
+        <p>This instruction doesn't take any parameters directly, as all necessary information is derived from the provided accounts.</p>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor account to update.</li>
+          <li><code>admin</code> (signer): The admin of the distributor who has authority to change the clawback receiver.</li>
+          <li><code>new_clawback_receiver</code> (read): The token account that will receive clawed back tokens.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Verifies the admin is the signer and matches the distributor's admin.</li>
+          <li>Ensures the new clawback receiver is initialized with the same mint as the distributor.</li>
+        </ol>
+        
+        <h2>Security Considerations</h2>
+        <ul>
+          <li>Only the designated admin can change the clawback receiver.</li>
+          <li>The new clawback receiver must be initialized with the same mint as the distributor.</li>
+        </ul>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>This instruction is useful if the admin needs to change where clawed back tokens will be sent.</li>
+          <li>The clawback receiver can be changed at any time before a clawback occurs.</li>
+          <li>After a clawback has occurred, changing the receiver has no effect.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

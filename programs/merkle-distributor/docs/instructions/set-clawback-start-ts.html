@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Clawback Start TS - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link active">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Set Clawback Start Timestamp Instruction</h1>
+        </div>
+        <p>The <code>set_clawback_start_ts</code> instruction allows the admin to set or update the timestamp when the clawback period begins.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction enables the admin of a Merkle Distributor to configure when the clawback period starts. The clawback start timestamp determines when the admin can begin reclaiming unclaimed tokens from the distributor.</p>
+        
+        <h2>Parameters</h2>
+        <ol>
+          <li><code>clawback_start_ts</code>: The Unix timestamp (in seconds) when the clawback period begins.</li>
+        </ol>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor account to update.</li>
+          <li><code>admin</code> (signer): The admin of the distributor.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Verifies the admin is the signer and matches the distributor's admin.</li>
+        </ol>
+        
+        <h2>Security Considerations</h2>
+        <ul>
+          <li>Only the admin can set the clawback start timestamp.</li>
+          <li>Setting a clawback start timestamp too early may not give users enough time to claim their tokens.</li>
+          <li>The admin should carefully consider the implications of the clawback timing on user expectations.</li>
+        </ul>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>This instruction is typically used to give users a specific time window to claim tokens before unclaimed tokens can be reclaimed by the admin.</li>
+          <li>The clawback start timestamp can be updated multiple times by the admin as needed.</li>
+          <li>Once the clawback period has begun (current time >= clawback_start_ts), the admin can use the <code>clawback</code> instruction to reclaim unclaimed tokens.</li>
+          <li>Setting this timestamp to a far future date effectively disables the clawback functionality until that time.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

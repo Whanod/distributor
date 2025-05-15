@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Close Distributor - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link active">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Close Distributor Instruction</h1>
+        </div>
+        <p>The <code>close_distributor</code> instruction allows for closing a Merkle Distributor account when it's no longer needed, reclaiming the rent.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction enables closing a Merkle Distributor account when certain conditions are met. Closing the account will reclaim the rent (SOL) paid for the account's storage back to the admin.</p>
+        
+        <h2>Parameters</h2>
+        <p>This instruction doesn't take any parameters directly, as all necessary information is derived from the provided accounts.</p>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor account to close.</li>
+          <li><code>admin</code> (signer, write): The admin of the distributor who has authority to close it and will receive the reclaimed rent.</li>
+          <li><code>token_vault</code> (read): The token vault associated with the distributor.</li>
+          <li><code>system_program</code> (read): The Solana System program.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Ensures the distributor's <code>closable</code> flag is set to true.</li>
+          <li>Verifies the admin is the signer and matches the distributor's admin.</li>
+          <li>Confirms the token vault has a zero balance to prevent loss of tokens.</li>
+        </ol>
+        
+        <h2>Close Process</h2>
+        <p>If all validations pass, the instruction:</p>
+        <ol>
+          <li>Closes the distributor account.</li>
+          <li>Returns the rent (SOL) to the admin account.</li>
+        </ol>
+        
+        <h2>Test Phase Restriction</h2>
+        <p>This instruction is only available during the test phase of the Merkle Distributor program. It's intended for use during development and testing, not in production.</p>
+        
+        <h2>Security Considerations</h2>
+        <ul>
+          <li>The <code>closable</code> flag must be set to true when creating the distributor to allow closing.</li>
+          <li>The token vault must have a zero balance, ensuring all tokens have been claimed or clawed back.</li>
+          <li>Only the designated admin can close the distributor.</li>
+        </ul>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>This instruction helps in cleaning up after a distribution is complete.</li>
+          <li>If there are any tokens left in the vault, the close operation will fail.</li>
+          <li>The admin should ensure all claims are processed or perform a clawback before closing.</li>
+          <li>This instruction should be used with caution as it permanently removes the distributor from the blockchain.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

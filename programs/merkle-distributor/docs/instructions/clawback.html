@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clawback - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link active">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Clawback Instruction</h1>
+        </div>
+        <p>The <code>clawback</code> instruction allows the admin of a Merkle Distributor to reclaim any unclaimed tokens after a specified clawback period has elapsed.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction enables the admin to reclaim tokens that haven't been claimed after the clawback start timestamp has passed. This serves as a safety mechanism to recover tokens that may never be claimed, preventing them from being locked forever in the distributor.</p>
+        
+        <h2>Parameters</h2>
+        <p>This instruction doesn't take any parameters directly, as all necessary information is derived from the provided accounts.</p>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor account.</li>
+          <li><code>from</code> (write): The token vault containing the tokens to recover.</li>
+          <li><code>to</code> (write): The token account designated to receive the clawed back tokens.</li>
+          <li><code>admin</code> (signer): The admin of the distributor who has authority to execute the clawback.</li>
+          <li><code>token_program</code> (read): The SPL Token program.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Ensures the current timestamp is at least equal to the clawback start timestamp.</li>
+          <li>Verifies the admin is the signer.</li>
+          <li>Confirms the distributor has not already been clawed back.</li>
+          <li>Checks that the destination account is the designated clawback receiver.</li>
+        </ol>
+        
+        <h2>Clawback Process</h2>
+        <p>If all validations pass, the instruction:</p>
+        <ol>
+          <li>Calculates the amount to clawback: <code>max_total_claim - total_amount_claimed</code></li>
+          <li>Marks the distributor as clawed back to prevent further claims.</li>
+          <li>Transfers the calculated amount from the token vault to the clawback receiver.</li>
+        </ol>
+        
+        <h2>Security Considerations</h2>
+        <ul>
+          <li>Once a distributor is clawed back, all future claims will be rejected.</li>
+          <li>The clawback start timestamp must be set when creating the distributor and must be at least one day after the end of the vesting period.</li>
+          <li>Only the designated admin can execute the clawback.</li>
+          <li>The tokens can only be transferred to the designated clawback receiver account.</li>
+        </ul>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>This instruction is useful for recovering tokens in cases where:
+            <ul>
+              <li>Users never claim their tokens</li>
+              <li>The Merkle tree contained errors</li>
+              <li>The distribution needs to be revised or canceled</li>
+            </ul>
+          </li>
+          <li>After clawback, the distributor can still exist but will reject any new claims or locked claims.</li>
+          <li>The clawback receiver must be initialized with the same mint as the distributor.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

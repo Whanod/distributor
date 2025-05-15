@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Distributor - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link active">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>New Distributor Instruction</h1>
+        </div>
+        <p>The <code>new_distributor</code> instruction creates a new Merkle Distributor instance that can be used to distribute tokens to multiple recipients efficiently.</p>
+        
+        <div class="warning-box">
+          <h3>⚠️ IMPORTANT SECURITY NOTICE</h3>
+          <p>This instruction is susceptible to frontrunning attacks that could result in loss of funds if not handled properly.</p>
+          <p>An attack could look like:</p>
+          <ul>
+            <li>A legitimate user opens a new distributor.</li>
+            <li>Someone observes the call to this instruction.</li>
+            <li>They replace the clawback_receiver, admin, or time parameters with their own.</li>
+          </ul>
+          <p>One situation that could happen is the attacker replaces the admin and clawback_receiver with their own and sets the clawback_start_ts with the minimal time allowed. After clawback_start_ts has elapsed, the attacker can steal all funds from the distributor to their own clawback_receiver account.</p>
+          <h3>How to avoid this attack:</h3>
+          <ul>
+            <li>When you call into this instruction, ensure your transaction succeeds.</li>
+            <li>After your transaction succeeds, read back the state of the created MerkleDistributor account and assert the parameters are what you expect, most importantly the clawback_receiver and admin.</li>
+            <li>If your transaction fails, double check the value on-chain matches what you expect.</li>
+          </ul>
+        </div>
+        
+        <h2>Parameters</h2>
+        <ul>
+          <li><code>version</code>: A version identifier for the distributor, used in the PDA derivation.</li>
+          <li><code>root</code>: The Merkle root hash (32 bytes) that validates claims against the distributor.</li>
+          <li><code>max_total_claim</code>: The maximum total amount of tokens that can be claimed from this distributor.</li>
+          <li><code>max_num_nodes</code>: The maximum number of unique claims that can be made.</li>
+          <li><code>start_vesting_ts</code>: The UNIX timestamp when vesting begins.</li>
+          <li><code>end_vesting_ts</code>: The UNIX timestamp when vesting ends.</li>
+          <li><code>clawback_start_ts</code>: The UNIX timestamp when the admin can clawback remaining tokens.</li>
+          <li><code>enable_slot</code>: The slot number when claiming becomes enabled.</li>
+          <li><code>closable</code>: Whether the distributor and claim status accounts can be closed.</li>
+        </ul>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor PDA account that will be initialized.</li>
+          <li><code>base</code> (signer): Base key used in the distributor's PDA derivation.</li>
+          <li><code>clawback_receiver</code> (write): Token account that will receive clawed back tokens.</li>
+          <li><code>mint</code> (read): The mint of the token to be distributed.</li>
+          <li><code>token_vault</code> (read): Associated token account owned by the distributor that holds the tokens.</li>
+          <li><code>admin</code> (signer, write): The admin wallet that pays for the transaction and has authority over the distributor.</li>
+          <li><code>system_program</code> (read): The Solana System program.</li>
+          <li><code>associated_token_program</code> (read): The SPL Associated Token program.</li>
+          <li><code>token_program</code> (read): The SPL Token program.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>The start timestamp must be before the end timestamp.</li>
+          <li>The start, end, and clawback timestamps must all be in the future.</li>
+          <li>The clawback start timestamp must be after the end timestamp.</li>
+          <li>The clawback start timestamp must be at least one day after the end timestamp.</li>
+        </ol>
+        
+        <h2>PDA Derivation</h2>
+        <p>The distributor account is a PDA derived with the following seeds:</p>
+        <ul>
+          <li><code>"MerkleDistributor"</code></li>
+          <li>The base key</li>
+          <li>The mint key</li>
+          <li>The version (as a little-endian byte array)</li>
+        </ul>
+        
+        <h2>After Initialization</h2>
+        <p>After creating the distributor, you must deposit exactly <code>max_total_claim</code> tokens into the <code>token_vault</code> account. The program doesn't handle this transfer as part of initialization to avoid potential security issues with token program integration.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Admin - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link active">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Set Admin Instruction</h1>
+        </div>
+        <p>The <code>set_admin</code> instruction allows the current admin to transfer admin authority to a new account.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction enables the current admin of a Merkle Distributor to transfer their admin privileges to a new account. The admin has authority over various aspects of the distributor, including clawback operations and other administrative functions.</p>
+        
+        <h2>Parameters</h2>
+        <p>This instruction doesn't take any parameters directly, as all necessary information is derived from the provided accounts.</p>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor account to update.</li>
+          <li><code>admin</code> (signer): The current admin of the distributor.</li>
+          <li><code>new_admin</code> (read): The account that will become the new admin.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Verifies the current admin is the signer and matches the distributor's admin.</li>
+        </ol>
+        
+        <h2>Security Considerations</h2>
+        <ul>
+          <li>Only the current admin can transfer admin authority.</li>
+          <li>Admin privileges are powerful and should be transferred with caution.</li>
+          <li>The admin has authority to clawback tokens, change the clawback receiver, and perform other administrative functions.</li>
+        </ul>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>This instruction is useful for transferring control of a distributor to another entity.</li>
+          <li>The new admin will have full control over the distributor after the transfer.</li>
+          <li>There is no way to recover admin access if transferred to an incorrect or inaccessible account.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

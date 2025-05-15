@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Enable Slot - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link active">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Set Enable Slot Instruction</h1>
+        </div>
+        <p>The <code>set_enable_slot</code> instruction allows the admin to set the slot number when claiming becomes enabled for a Merkle Distributor.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction enables the admin to modify the slot number at which users can begin making claims against the distributor. This provides flexibility to delay the start of claiming if needed.</p>
+        
+        <h2>Parameters</h2>
+        <ul>
+          <li><code>enable_slot</code>: The new slot number when claiming becomes enabled.</li>
+        </ul>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor account to update.</li>
+          <li><code>admin</code> (signer): The admin of the distributor who has authority to set the enable slot.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Verifies the admin is the signer and matches the distributor's admin.</li>
+        </ol>
+        
+        <h2>Security Considerations</h2>
+        <ul>
+          <li>Only the designated admin can set the enable slot.</li>
+          <li>Changing the enable slot affects when users can start claiming tokens.</li>
+        </ul>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>This instruction is useful if the distribution needs to be delayed after the distributor is created.</li>
+          <li>Users cannot make claims until the current slot is greater than or equal to the enable_slot.</li>
+          <li>The admin can set this to a very high value to effectively pause claiming.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

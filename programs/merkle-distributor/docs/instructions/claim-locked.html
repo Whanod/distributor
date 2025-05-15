@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claim Locked - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link active">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Claim Locked Instruction</h1>
+        </div>
+        <p>The <code>claim_locked</code> instruction allows a claimant to claim their vested tokens according to the vesting schedule defined in the Merkle Distributor.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction enables users to claim tokens that were previously set as "locked" during the initial claim process. The amount available for claiming is calculated based on a linear vesting schedule between the distributor's start and end timestamps.</p>
+        
+        <h2>Parameters</h2>
+        <p>This instruction doesn't take any parameters directly, as all necessary information is derived from the provided accounts.</p>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (read): The Merkle Distributor account.</li>
+          <li><code>claim_status</code> (write): The claim status account tracking the user's claim.</li>
+          <li><code>from</code> (write): The token vault containing the tokens to distribute.</li>
+          <li><code>to</code> (write): The token account to send the claimed tokens to.</li>
+          <li><code>claimant</code> (signer): The account claiming the tokens, must be the owner of the <code>to</code> account and match the claimant in the claim status.</li>
+          <li><code>token_program</code> (read): The SPL Token program.</li>
+        </ol>
+        
+        <h2>Vesting Calculation</h2>
+        <p>The amount available for withdrawal is calculated using a linear vesting formula:</p>
+        <pre><code>available = locked_amount * (current_ts - start_ts) / (end_ts - start_ts)</code></pre>
+        <p>Where:</p>
+        <ul>
+          <li><code>locked_amount</code> is the total amount locked for vesting</li>
+          <li><code>current_ts</code> is the current UNIX timestamp</li>
+          <li><code>start_ts</code> is the start of the vesting period</li>
+          <li><code>end_ts</code> is the end of the vesting period</li>
+        </ul>
+        <p>The calculation is capped so that:</p>
+        <ul>
+          <li>If <code>current_ts < start_ts</code>, available = 0</li>
+          <li>If <code>current_ts >= end_ts</code>, available = locked_amount</li>
+        </ul>
+        <p>The instruction subtracts the already withdrawn amount from the calculated available amount to determine how much to transfer.</p>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Ensures the distributor has not been clawed back.</li>
+          <li>Verifies that the claimant in the claim status matches the signer.</li>
+          <li>Confirms that the current timestamp is at least equal to the start timestamp.</li>
+          <li>Checks that there are still locked tokens available to claim.</li>
+        </ol>
+        
+        <h2>Token Transfer</h2>
+        <p>If there are tokens available to claim, the instruction:</p>
+        <ol>
+          <li>Calculates the amount to transfer (based on the vesting formula).</li>
+          <li>Updates the <code>locked_amount_withdrawn</code> in the claim status.</li>
+          <li>Updates the <code>total_amount_claimed</code> in the distributor.</li>
+          <li>Transfers the tokens from the distributor's vault to the claimant's token account.</li>
+        </ol>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>Claimants can call this instruction multiple times as more tokens vest over time.</li>
+          <li>The maximum amount that can be claimed equals the original <code>locked_amount</code>.</li>
+          <li>If the distributor has been clawed back, this instruction will fail.</li>
+          <li>Vesting follows a linear schedule between the start and end timestamps.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

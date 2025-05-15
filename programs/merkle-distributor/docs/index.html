@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="index.html" class="nav-link active">Introduction</a></li>
+          <li class="nav-item"><a href="#how-to-use" class="nav-link">How to Use</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="instructions/new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="instructions/new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="instructions/claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="instructions/clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="instructions/close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="instructions/close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="instructions/set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="instructions/set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="instructions/set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="instructions/set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Overview Section -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Merkle Distributor Documentation</h1>
+        </div>
+        <p>This documentation provides detailed information about the Solana Merkle Distributor program. This program allows for efficient token distribution using a Merkle tree structure, reducing transaction costs and simplifying operational management.</p>
+        
+        <h2>Overview</h2>
+        <p>The Merkle Distributor program is based on <a href="https://github.com/Uniswap/merkle-distributor" target="_blank">Uniswap's Merkle Distributor</a>. It addresses the issue of high storage costs when distributing tokens to thousands of wallets by using a Merkle tree structure that puts the gas cost on the claimer rather than the distributor.</p>
+        
+        <h2>Rationale</h2>
+        <p>Although Solana has low fees for executing transactions, it requires staking tokens to pay for storage costs, also known as "rent". These rent costs can add up when sending tokens to thousands or tens of thousands of wallets, making it economically unreasonable to distribute tokens to everyone.</p>
+        <p>The Merkle distributor solves this issue by deriving a 256-bit "root hash" from a tree of balances. This puts the gas cost on the claimer. Solana has the additional advantage of being able to reclaim rent from closed token accounts, so the net cost to the user should be around 0.000010 SOL (at the time of writing).</p>
+        <p>The Merkle distributor is also significantly easier to manage from an operations perspective, since one does not need to send a transaction to each individual address that may be redeeming tokens.</p>
+        
+        <h2 id="how-to-use">How to Use</h2>
+        <p>The following steps outline the typical flow of using the Merkle Distributor program:</p>
+        
+        <h3>1. Setup Phase (Admin)</h3>
+        <ol>
+          <li><strong>Create Merkle Tree:</strong> Generate a Merkle tree off-chain with the list of claimants, their token amounts, and vesting schedules if applicable.</li>
+          <li><strong>Create Distributor:</strong> Call <a href="instructions/new-distributor.html">new_distributor</a> instruction with the Merkle root hash, token mint, and configuration parameters.</li>
+          <li><strong>Fund the Distributor:</strong> Transfer the total token amount to the distributor's token vault.</li>
+          <li><strong>Optional Configuration:</strong>
+            <ul>
+              <li>Call <a href="instructions/set-enable-slot.html">set_enable_slot</a> to set when claiming becomes enabled.</li>
+              <li>Call <a href="instructions/set-clawback-receiver.html">set_clawback_receiver</a> to set the account that will receive clawed back tokens.</li>
+              <li>Call <a href="instructions/set-clawback-start-ts.html">set_clawback_start_ts</a> to set when the admin can begin the clawback process.</li>
+            </ul>
+          </li>
+        </ol>
+        
+        <h3>2. Claim Phase (Users)</h3>
+        <ol>
+          <li><strong>Regular Claims:</strong> Users call <a href="instructions/new-claim.html">new_claim</a> with their proof to claim their tokens immediately. This is used for tokens without vesting.</li>
+          <li><strong>Vested Claims:</strong> For tokens with vesting schedules:
+            <ul>
+              <li>Users initially call <a href="instructions/new-claim.html">new_claim</a> to establish their claim.</li>
+              <li>Users periodically call <a href="instructions/claim-locked.html">claim_locked</a> to receive portions of their tokens as they vest over time.</li>
+            </ul>
+          </li>
+        </ol>
+        
+        <h3>3. Administration (Admin)</h3>
+        <p>During the distribution lifetime, the admin may:</p>
+        <ul>
+          <li>Call <a href="instructions/set-admin.html">set_admin</a> to transfer admin authority to another account.</li>
+          <li>Call <a href="instructions/clawback.html">clawback</a> after the clawback start timestamp to reclaim unclaimed tokens.</li>
+        </ul>
+        
+        <h3>4. Cleanup Phase</h3>
+        <ul>
+          <li>Users can call <a href="instructions/close-claim-status.html">close_claim_status</a> to close their claim status accounts and reclaim rent.</li>
+          <li>Admin can call <a href="instructions/close-distributor.html">close_distributor</a> to close the distributor account after all tokens have been claimed or clawed back.</li>
+        </ul>
+        
+        <h3>Common Usage Patterns</h3>
+        <h4>Simple Token Distribution</h4>
+        <p>For a straightforward token distribution without vesting:</p>
+        <ol>
+          <li>Admin: Create distributor → Fund distributor</li>
+          <li>Users: Call new_claim to receive tokens immediately</li>
+          <li>Admin: Optionally clawback unclaimed tokens after the specified period</li>
+        </ol>
+        
+        <h4>Vested Token Distribution</h4>
+        <p>For a token distribution with vesting schedules:</p>
+        <ol>
+          <li>Admin: Create distributor with vesting configuration → Fund distributor</li>
+          <li>Users: Call new_claim to establish their claim</li>
+          <li>Users: Periodically call claim_locked as tokens vest</li>
+          <li>Admin: Optionally clawback unclaimed tokens after the specified period</li>
+        </ol>
+        
+        <h2>Available Instructions</h2>
+        <p>The Merkle Distributor program provides the following instructions:</p>
+        <ul>
+          <li><a href="instructions/new-distributor.html">New Distributor</a> - Creates a new Merkle Distributor instance</li>
+          <li><a href="instructions/new-claim.html">New Claim</a> - Claims tokens from a distributor</li>
+          <li><a href="instructions/claim-locked.html">Claim Locked</a> - Claims vested tokens according to the vesting schedule</li>
+          <li><a href="instructions/clawback.html">Clawback</a> - Allows the admin to reclaim unclaimed tokens</li>
+          <li><a href="instructions/close-distributor.html">Close Distributor</a> - Closes a distributor account</li>
+          <li><a href="instructions/close-claim-status.html">Close Claim Status</a> - Closes a claim status account</li>
+          <li><a href="instructions/set-enable-slot.html">Set Enable Slot</a> - Sets when claiming becomes enabled</li>
+          <li><a href="instructions/set-clawback-receiver.html">Set Clawback Receiver</a> - Changes the clawback receiver</li>
+          <li><a href="instructions/set-admin.html">Set Admin</a> - Changes the admin of the distributor</li>
+          <li><a href="instructions/set-clawback-start-ts.html">Set Clawback Start Timestamp</a> - Sets when clawback becomes available</li>
+        </ul>
+        
+        <h2>Security Considerations</h2>
+        <p>This program includes protection against frontrunning attacks and other security measures. Please read the documentation of each instruction carefully before implementation.</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html> 

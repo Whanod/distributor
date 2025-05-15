@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Claim - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link active">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>New Claim Instruction</h1>
+        </div>
+        <p>The <code>new_claim</code> instruction allows a claimant to claim tokens from a Merkle Distributor. This instruction verifies the claim against the Merkle tree, initializes the claim status, and transfers the unlocked tokens to the claimant.</p>
+        
+        <h2>Overview</h2>
+        <p>This instruction processes claims from the Merkle Distributor using the following approach:</p>
+        <ol>
+          <li>Validates the Merkle proof against the distributor's root</li>
+          <li>Creates a Claim Status account to track the claim</li>
+          <li>Transfers the unlocked amount immediately to the claimant</li>
+          <li>Records the locked amount that will be available for vesting</li>
+        </ol>
+        
+        <h2>Parameters</h2>
+        <ul>
+          <li><code>amount_unlocked</code>: The amount of tokens to be transferred immediately to the claimant.</li>
+          <li><code>amount_locked</code>: The amount of tokens that will be vested according to the vesting schedule.</li>
+          <li><code>proof</code>: A vector of 32-byte hashes representing the Merkle proof that validates the claim.</li>
+        </ul>
+        
+        <h2>Accounts Required</h2>
+        <ol>
+          <li><code>distributor</code> (write): The Merkle Distributor account.</li>
+          <li><code>claim_status</code> (write): The PDA that will track the claim status.</li>
+          <li><code>from</code> (write): The token vault containing the tokens to distribute.</li>
+          <li><code>to</code> (write): The token account to send the claimed tokens to.</li>
+          <li><code>claimant</code> (signer, write): The account claiming the tokens, must be the owner of the <code>to</code> account.</li>
+          <li><code>token_program</code> (read): The SPL Token program.</li>
+          <li><code>system_program</code> (read): The Solana System program.</li>
+        </ol>
+        
+        <h2>Validation Checks</h2>
+        <p>The instruction performs the following validations:</p>
+        <ol>
+          <li>Ensures the distributor has not been clawed back.</li>
+          <li>Verifies that claiming is enabled (current slot >= enable_slot).</li>
+          <li>Checks that the number of claimed nodes is not exceeding the maximum.</li>
+          <li>Verifies the Merkle proof against the distributor's root and the claimant's data.</li>
+          <li>Ensures the claimant is the owner of the destination token account.</li>
+          <li>Validates that the total claimed amount doesn't exceed the maximum total claim.</li>
+        </ol>
+        
+        <h2>Merkle Proof Verification</h2>
+        <p>The Merkle proof verification uses a leaf node constructed from:</p>
+        <ul>
+          <li>The claimant's public key</li>
+          <li>The unlocked amount</li>
+          <li>The locked amount</li>
+        </ul>
+        <p>The verification prevents second pre-image attacks by using a leaf prefix to discern between leaf and intermediate nodes.</p>
+        
+        <h2>Claim Status Account</h2>
+        <p>The claim status account is a PDA derived with the following seeds:</p>
+        <ul>
+          <li><code>"ClaimStatus"</code></li>
+          <li>The claimant's public key</li>
+          <li>The distributor's public key</li>
+        </ul>
+        <p>The claim status keeps track of:</p>
+        <ul>
+          <li>The claimant</li>
+          <li>The locked amount</li>
+          <li>The unlocked amount</li>
+          <li>How much of the locked amount has been withdrawn</li>
+          <li>Whether the account is closable</li>
+          <li>The admin of the distributor</li>
+        </ul>
+        
+        <h2>Events</h2>
+        <p>The instruction emits a <code>NewClaimEvent</code> that includes:</p>
+        <ul>
+          <li>The claimant's public key</li>
+          <li>The timestamp when the claim was made</li>
+        </ul>
+        
+        <h2>Notes</h2>
+        <ul>
+          <li>The unlocked amount is transferred immediately during this instruction.</li>
+          <li>The locked amount can be claimed later via the <code>claim_locked</code> instruction according to the vesting schedule.</li>
+          <li>This instruction only initializes the claim; it doesn't handle vesting logic directly.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html> 
