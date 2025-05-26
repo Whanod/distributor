@@ -37,7 +37,7 @@ export function generateMerkleProofs(csvPath: string, outputPath: string) {
     const createTreeCommand = `cli create-merkle-tree \
         --csv-path "${absoluteCsvPath}" \
         --merkle-tree-path "${absoluteOutputPath}" \
-        --max-nodes-per-tree 1000 \
+        --max-nodes-per-tree 20000 \
         --amount 10000 \
         --decimals 9`;
 
@@ -66,7 +66,7 @@ export function generateMerkleProofs(csvPath: string, outputPath: string) {
         const generateProofsCommand = `cli generate-kv-proof \
             --merkle-tree-path "${absoluteOutputPath}" \
             --kv-path "${join(absoluteOutputPath, 'proofs')}" \
-            --max-entries-per-file 1000`;
+            --max-entries-per-file 20000`;
 
         console.log('Generating proofs with command:', generateProofsCommand);
         

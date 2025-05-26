@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vesting Guide - Merkle Distributor Documentation</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Merkle Distributor</h2>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../index.html" class="nav-link">Introduction</a></li>
+          <li class="nav-item"><a href="vesting-guide.html" class="nav-link active">Vesting Guide</a></li>
+        </ul>
+        <div class="nav-section">Instructions</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="new-distributor.html" class="nav-link">New Distributor</a></li>
+          <li class="nav-item"><a href="new-claim.html" class="nav-link">New Claim</a></li>
+          <li class="nav-item"><a href="claim-locked.html" class="nav-link">Claim Locked</a></li>
+          <li class="nav-item"><a href="clawback.html" class="nav-link">Clawback</a></li>
+          <li class="nav-item"><a href="close-distributor.html" class="nav-link">Close Distributor</a></li>
+          <li class="nav-item"><a href="close-claim-status.html" class="nav-link">Close Claim Status</a></li>
+          <li class="nav-item"><a href="set-enable-slot.html" class="nav-link">Set Enable Slot</a></li>
+          <li class="nav-item"><a href="set-clawback-receiver.html" class="nav-link">Set Clawback Receiver</a></li>
+          <li class="nav-item"><a href="set-admin.html" class="nav-link">Set Admin</a></li>
+          <li class="nav-item"><a href="set-clawback-start-ts.html" class="nav-link">Set Clawback Start TS</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Instruction Content -->
+      <section class="instruction active">
+        <div class="instruction-header">
+          <h1>Vesting Guide</h1>
+        </div>
+        <p>This guide provides an in-depth explanation of how token vesting works in the Merkle Distributor, including detailed examples with real numbers and calculations.</p>
+        
+        <h2>What is Vesting?</h2>
+        <p>Vesting is a mechanism that releases tokens gradually over time rather than all at once. In the Merkle Distributor, each claim can have two components:</p>
+        <ul>
+          <li><strong>Unlocked Amount</strong>: Tokens that are immediately available when the claim is made</li>
+          <li><strong>Locked Amount</strong>: Tokens that are released linearly over a specified time period</li>
+        </ul>
+        
+        <h2>How Vesting Works</h2>
+        <p>The vesting mechanism in the Merkle Distributor follows a linear schedule defined by three key timestamps:</p>
+        <ul>
+          <li><code>start_vesting_ts</code>: When vesting begins (UNIX timestamp)</li>
+          <li><code>end_vesting_ts</code>: When vesting ends (UNIX timestamp)</li>
+          <li><code>current_ts</code>: The current time when claiming</li>
+        </ul>
+        
+        <h3>Vesting Formula</h3>
+        <p>The amount of locked tokens available for withdrawal at any given time is calculated using this formula:</p>
+        <pre><code>if current_ts < start_vesting_ts:
+    available = 0
+elif current_ts >= end_vesting_ts:
+    available = locked_amount
+else:
+    time_into_unlock = current_ts - start_vesting_ts
+    total_unlock_time = end_vesting_ts - start_vesting_ts
+    available = (time_into_unlock * locked_amount) / total_unlock_time</code></pre>
+        
+        <p>The actual withdrawable amount is then:</p>
+        <pre><code>withdrawable = available - already_withdrawn</code></pre>
+        
+        <h2>Detailed Example Scenarios</h2>
+        
+        <h3>Example 1: Basic Linear Vesting</h3>
+        <div class="warning-box">
+          <h3>📊 Scenario Setup</h3>
+          <ul>
+            <li><strong>Total Allocation:</strong> 10,000 tokens</li>
+            <li><strong>Unlocked Amount:</strong> 2,000 tokens (20%)</li>
+            <li><strong>Locked Amount:</strong> 8,000 tokens (80%)</li>
+            <li><strong>Start Vesting:</strong> January 1, 2024, 00:00 UTC (1704067200)</li>
+            <li><strong>End Vesting:</strong> January 1, 2025, 00:00 UTC (1735689600)</li>
+            <li><strong>Vesting Duration:</strong> 365 days (31,536,000 seconds)</li>
+          </ul>
+        </div>
+        
+        <h4>Timeline Breakdown:</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Days Elapsed</th>
+              <th>Vesting Progress</th>
+              <th>Available Locked</th>
+              <th>Total Available</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Jan 1, 2024 (Claim)</td>
+              <td>0</td>
+              <td>0%</td>
+              <td>0 tokens</td>
+              <td>2,000 tokens</td>
+            </tr>
+            <tr>
+              <td>Apr 1, 2024</td>
+              <td>91</td>
+              <td>25%</td>
+              <td>2,000 tokens</td>
+              <td>4,000 tokens</td>
+            </tr>
+            <tr>
+              <td>Jul 1, 2024</td>
+              <td>182</td>
+              <td>50%</td>
+              <td>4,000 tokens</td>
+              <td>6,000 tokens</td>
+            </tr>
+            <tr>
+              <td>Oct 1, 2024</td>
+              <td>274</td>
+              <td>75%</td>
+              <td>6,000 tokens</td>
+              <td>8,000 tokens</td>
+            </tr>
+            <tr>
+              <td>Jan 1, 2025</td>
+              <td>365</td>
+              <td>100%</td>
+              <td>8,000 tokens</td>
+              <td>10,000 tokens</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <h4>Calculation Examples:</h4>
+        <p><strong>At April 1, 2024 (91 days elapsed):</strong></p>
+        <pre><code>current_ts = 1711929600 (Apr 1, 2024)
+time_into_unlock = 1711929600 - 1704067200 = 7,862,400 seconds
+total_unlock_time = 1735689600 - 1704067200 = 31,622,400 seconds
+available = (7,862,400 * 8,000) / 31,622,400 = 1,990 tokens (≈25%)</code></pre>
+        
+        <p><strong>At July 1, 2024 (182 days elapsed):</strong></p>
+        <pre><code>current_ts = 1719792000 (Jul 1, 2024)
+time_into_unlock = 1719792000 - 1704067200 = 15,724,800 seconds
+available = (15,724,800 * 8,000) / 31,622,400 = 3,980 tokens (≈50%)</code></pre>
+        
+        <h3>Example 2: Multiple Claims Over Time</h3>
+        <div class="warning-box">
+          <h3>📊 Scenario: Progressive Claiming</h3>
+          <p>Same setup as Example 1, but the user makes multiple claims throughout the vesting period.</p>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Claim Date</th>
+              <th>Available Locked</th>
+              <th>Already Withdrawn</th>
+              <th>Withdrawable Now</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Jan 1, 2024</td>
+              <td>0 tokens</td>
+              <td>0 tokens</td>
+              <td>2,000 tokens</td>
+              <td>Claim unlocked portion</td>
+            </tr>
+            <tr>
+              <td>Apr 1, 2024</td>
+              <td>2,000 tokens</td>
+              <td>0 tokens</td>
+              <td>2,000 tokens</td>
+              <td>Claim 25% of locked</td>
+            </tr>
+            <tr>
+              <td>Jul 1, 2024</td>
+              <td>4,000 tokens</td>
+              <td>2,000 tokens</td>
+              <td>2,000 tokens</td>
+              <td>Claim additional 25%</td>
+            </tr>
+            <tr>
+              <td>Oct 1, 2024</td>
+              <td>6,000 tokens</td>
+              <td>4,000 tokens</td>
+              <td>2,000 tokens</td>
+              <td>Claim additional 25%</td>
+            </tr>
+            <tr>
+              <td>Jan 1, 2025</td>
+              <td>8,000 tokens</td>
+              <td>6,000 tokens</td>
+              <td>2,000 tokens</td>
+              <td>Claim final 25%</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <h3>Example 3: Delayed First Claim</h3>
+        <div class="warning-box">
+          <h3>📊 Scenario: Late Claimer</h3>
+          <p>User doesn't make their initial claim until 6 months into the vesting period.</p>
+        </div>
+        
+        <p><strong>First claim on July 1, 2024 (6 months after vesting started):</strong></p>
+        <ul>
+          <li><strong>Unlocked tokens available:</strong> 2,000 tokens (always available)</li>
+          <li><strong>Locked tokens vested:</strong> 4,000 tokens (50% of 8,000)</li>
+          <li><strong>Total claimable:</strong> 6,000 tokens</li>
+        </ul>
+        
+        <p>The user can claim all 6,000 tokens in a single transaction, receiving both the unlocked portion and all vested locked tokens up to that point.</p>
+        
+        <h2>Edge Cases and Important Notes</h2>
+        
+        <h3>Before Vesting Starts</h3>
+        <p>If a user tries to claim locked tokens before <code>start_vesting_ts</code>, they will receive 0 locked tokens but can still claim their unlocked portion.</p>
+        
+        <h3>After Vesting Ends</h3>
+        <p>Once <code>current_ts >= end_vesting_ts</code>, all locked tokens become available for withdrawal, regardless of how much time has passed.</p>
+        
+        <h3>Precision and Rounding</h3>
+        <p>The vesting calculation uses integer arithmetic and may result in slight rounding down due to truncation. This ensures users never receive more tokens than allocated but may receive slightly fewer in intermediate calculations.</p>
+        
+        <h3>Gas Optimization</h3>
+        <p>Users can optimize gas costs by claiming less frequently, as each claim requires a transaction. However, they don't lose any tokens by waiting - all vested tokens remain available.</p>
+        
+        <h2>Implementation Details</h2>
+        
+        <h3>State Tracking</h3>
+        <p>The system tracks vesting progress through the <code>ClaimStatus</code> account:</p>
+        <ul>
+          <li><code>locked_amount</code>: Total tokens subject to vesting</li>
+          <li><code>unlocked_amount</code>: Tokens immediately available</li>
+          <li><code>locked_amount_withdrawn</code>: How many locked tokens have been claimed</li>
+        </ul>
+        
+        <h3>Security Considerations</h3>
+        <ul>
+          <li>Vesting parameters are immutable once set in the distributor</li>
+          <li>Users can only claim their own tokens (verified by signature)</li>
+          <li>The system prevents double-spending through withdrawal tracking</li>
+          <li>Clawback protection ensures tokens remain available until the clawback period</li>
+        </ul>
+        
+        <h2>Best Practices</h2>
+        
+        <h3>For Distributors</h3>
+        <ul>
+          <li>Set reasonable vesting periods (typically 1-4 years)</li>
+          <li>Ensure clawback timestamp is well after vesting ends</li>
+          <li>Consider the user experience when setting unlock percentages</li>
+          <li>Test calculations thoroughly before deployment</li>
+        </ul>
+        
+        <h3>For Claimants</h3>
+        <ul>
+          <li>Claim unlocked tokens immediately if needed</li>
+          <li>Monitor vesting progress and claim periodically</li>
+          <li>Be aware of clawback deadlines</li>
+          <li>Consider gas costs when deciding claim frequency</li>
+        </ul>
+        
+        <h2>Common Calculations</h2>
+        
+        <h3>Daily Vesting Rate</h3>
+        <pre><code>daily_rate = locked_amount / vesting_days
+tokens_per_second = locked_amount / (end_ts - start_ts)</code></pre>
+        
+        <h3>Percentage Vested</h3>
+        <pre><code>if current_ts >= end_ts:
+    percentage = 100%
+elif current_ts <= start_ts:
+    percentage = 0%
+else:
+    percentage = (current_ts - start_ts) / (end_ts - start_ts) * 100%</code></pre>
+        
+        <h3>Time Until Fully Vested</h3>
+        <pre><code>if current_ts >= end_ts:
+    time_remaining = 0
+else:
+    time_remaining = end_ts - current_ts</code></pre>
+        
+      </section>
+    </main>
+  </div>
+</body>
+</html> 
