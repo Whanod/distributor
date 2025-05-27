@@ -1,5 +1,5 @@
 [package]
-name = "kamino-airdrop-api"
+name = "astrol-airdrop-api"
 version = { workspace = true }
 edition = { workspace = true }
 

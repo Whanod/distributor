@@ -24,6 +24,7 @@ served via three **read-only** endpoints:
    * For each tree, a Merkle-Distributor **PDA** is deterministically derived
      with `get_merkle_distributor_pda(program_id, base, mint,
      airdrop_version)`.
+   * sample startup `cargo run --release --bin astrol-airdrop-api -- --merkle-tree-path ../distributor --base KdisqEcXbXKaTrBFqeDLhMmBvymLTwj9GmhDcdJyGat  --mint KdisqEcXbXKaTrBFqeDLhMmBvymLTwj9GmhDcdJyGat --program-id   KdisqEcXbXKaTrBFqeDLhMmBvymLTwj9GmhDcdJyGat --bind-addr 127.0.0.1:7001`
 
 2. **In-memory state**  
    * A global `RouterState` is built:  

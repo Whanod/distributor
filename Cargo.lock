@@ -515,6 +515,37 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 
 [[package]]
+name = "astrol-airdrop-api"
+version = "0.1.0-SNAPSHOT"
+dependencies = [
+ "anchor-lang",
+ "assert_matches",
+ "axum",
+ "clap 3.2.25",
+ "futures",
+ "http",
+ "hyper",
+ "hyper-tls",
+ "jito-merkle-tree",
+ "merkle-distributor",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "solana-program",
+ "solana-rpc-client",
+ "solana-rpc-client-api",
+ "solana-sdk",
+ "spl-associated-token-account 2.2.0",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-core",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "async-channel"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2190,37 +2221,6 @@ dependencies = [
  "spl-associated-token-account 2.2.0",
  "spl-token 3.5.0",
  "zip",
-]
-
-[[package]]
-name = "kamino-airdrop-api"
-version = "0.1.0-SNAPSHOT"
-dependencies = [
- "anchor-lang",
- "assert_matches",
- "axum",
- "clap 3.2.25",
- "futures",
- "http",
- "hyper",
- "hyper-tls",
- "jito-merkle-tree",
- "merkle-distributor",
- "serde",
- "serde_derive",
- "serde_json",
- "solana-program",
- "solana-rpc-client",
- "solana-rpc-client-api",
- "solana-sdk",
- "spl-associated-token-account 2.2.0",
- "thiserror",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-core",
- "tracing-subscriber",
 ]
 
 [[package]]
