@@ -11,8 +11,10 @@ use crate::csv_entry::CsvEntry;
 pub struct TreeNode {
     /// Pubkey of the claimant; will be responsible for signing the claim
     pub claimant: Pubkey,
-    /// Amount that claimant can claim
-    pub amount: u64,
+    /// Amount that claimant can claim immediately (unlocked)
+    pub amount_unlocked: u64,
+    /// Amount that claimant can claim through vesting (locked)
+    pub amount_locked: u64,
     /// Claimant's proof of inclusion in the Merkle Tree
     pub proof: Option<Vec<[u8; 32]>>,
 }
@@ -21,14 +23,24 @@ impl TreeNode {
     pub fn hash(&self) -> Hash {
         hashv(&[
             &self.claimant.to_bytes(),
-            &self.amount.to_le_bytes(),
-            &0u64.to_le_bytes(),
+            &self.amount_unlocked.to_le_bytes(),
+            &self.amount_locked.to_le_bytes(),
         ])
     }
 
-    /// Return amount for this claimant
+    /// Return total amount for this claimant (unlocked + locked)
     pub fn amount(&self) -> u64 {
-        self.amount
+        self.amount_unlocked + self.amount_locked
+    }
+    
+    /// Return unlocked amount for this claimant
+    pub fn amount_unlocked(&self) -> u64 {
+        self.amount_unlocked
+    }
+    
+    /// Return locked amount for this claimant
+    pub fn amount_locked(&self) -> u64 {
+        self.amount_locked
     }
 }
 
@@ -43,7 +55,8 @@ impl TreeNode {
     pub fn from_csv(entry: CsvEntry, decimals: u32) -> Self {
         let node = Self {
             claimant: Pubkey::from_str(entry.pubkey.as_str()).unwrap(),
-            amount: ui_amount_to_token_amount(entry.amount, decimals),
+            amount_unlocked: ui_amount_to_token_amount(entry.unlocked_amount(), decimals),
+            amount_locked: ui_amount_to_token_amount(entry.locked_amount(), decimals),
             proof: None,
         };
         node

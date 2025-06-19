@@ -5,6 +5,8 @@ import { join } from 'path';
 interface ProofData {
     merkle_tree: string;
     amount: number;
+    amount_unlocked: number;
+    amount_locked: number;
     proof: number[][];
 }
 
@@ -15,6 +17,8 @@ interface MerkleTreeData {
 export function getUserProof(userAddress: string): { 
     proof: number[][], 
     amount: number,
+    amount_unlocked: number,
+    amount_locked: number,
     merkleTree: string
 } {
     // Read the merkle tree data
@@ -32,6 +36,8 @@ export function getUserProof(userAddress: string): {
     }
 
     return {
+        amount_locked: userProof.amount_locked,
+        amount_unlocked: userProof.amount_unlocked,
         proof: userProof.proof,
         amount: userProof.amount,
         merkleTree: userProof.merkle_tree

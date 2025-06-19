@@ -7,7 +7,12 @@ use crate::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KvProof {
     pub merkle_tree: String,
+    /// Total amount (unlocked + locked) for backward compatibility
     pub amount: u64,
+    /// Amount that can be claimed immediately
+    pub amount_unlocked: u64,
+    /// Amount that is locked for vesting
+    pub amount_locked: u64,
     /// Claimant's proof of inclusion in the Merkle Tree
     pub proof: Vec<[u8; 32]>,
 }
@@ -46,7 +51,9 @@ pub fn process_generate_kv_proof(args: &Args, generate_kv_proof_args: &GenerateK
                 user_pk.to_string(),
                 KvProof {
                     merkle_tree: distributor_pubkey.to_string(),
-                    amount: node.amount,
+                    amount: node.amount(), // total amount for backward compatibility
+                    amount_unlocked: node.amount_unlocked(),
+                    amount_locked: node.amount_locked(),
                     proof: node.proof.clone().unwrap(),
                 },
             );

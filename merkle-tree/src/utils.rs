@@ -66,10 +66,11 @@ pub struct MerkleValidationError {
 mod tests {
     use super::*;
     // Helper function to create a tree node
-    fn create_node(claimant: Pubkey, amount: u64) -> TreeNode {
+    fn create_node(claimant: Pubkey, amount_unlocked: u64, amount_locked: u64) -> TreeNode {
         TreeNode {
             claimant,
-            amount,
+            amount_unlocked,
+            amount_locked,
             proof: None,
         }
     }
@@ -77,8 +78,8 @@ mod tests {
     #[test]
     fn test_get_max_total_claim_no_overflow() {
         let nodes = vec![
-            create_node(Pubkey::new_unique(), 100),
-            create_node(Pubkey::new_unique(), 300),
+            create_node(Pubkey::new_unique(), 100, 0),
+            create_node(Pubkey::new_unique(), 300, 0),
         ];
 
         let total = get_max_total_claim(&nodes);

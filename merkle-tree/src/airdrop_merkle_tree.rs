@@ -57,7 +57,8 @@ impl AirdropMerkleTree {
                 .entry(claimant)
                 .and_modify(|n| {
                     println!("duplicate claimant {} found, combining", n.claimant);
-                    n.amount = n.amount.checked_add(tree_node.amount).unwrap();
+                    n.amount_unlocked = n.amount_unlocked.checked_add(tree_node.amount_unlocked).unwrap();
+                    n.amount_locked = n.amount_locked.checked_add(tree_node.amount_locked).unwrap();
                 })
                 .or_insert_with(|| tree_node); // If not exists, insert a new entry
         }
@@ -282,7 +283,8 @@ mod tests {
             // choose amount unlocked and amount locked as a random u64 between 0 and 100
             tree_nodes.push(TreeNode {
                 claimant: new_test_key(),
-                amount: rand_balance(),
+                amount_unlocked: rand_balance(),
+                amount_locked: rand_balance(),
                 proof: None,
                 // total_unlocked_staker: rand_balance(),
                 // total_locked_staker: rand_balance(),
@@ -302,7 +304,8 @@ mod tests {
     fn test_verify_new_merkle_tree() {
         let tree_nodes = vec![TreeNode {
             claimant: Pubkey::default(),
-            amount: 2,
+            amount_unlocked: 2,
+            amount_locked: 0,
             proof: None,
         }];
         let merkle_tree = AirdropMerkleTree::new(tree_nodes, 0).unwrap();
@@ -315,17 +318,20 @@ mod tests {
         let tree_nodes = vec![
             TreeNode {
                 claimant: pubkey!("FLYqJsmJ5AGMxMxK3Qy1rSen4ES2dqqo6h51W3C1tYS"),
-                amount: (100 * u64::pow(10, 9)),
+                amount_unlocked: (100 * u64::pow(10, 9)),
+                amount_locked: 0,
                 proof: None,
             },
             TreeNode {
                 claimant: pubkey!("EDGARWktv3nDxRYjufjdbZmryqGXceaFPoPpbUzdpqED"),
-                amount: (100 * u64::pow(10, 9)),
+                amount_unlocked: (100 * u64::pow(10, 9)),
+                amount_locked: 0,
                 proof: None,
             },
             TreeNode {
                 claimant: pubkey!("EDGARWktv3nDxRYjufjdbZmryqGXceaFPoPpbUzdpqEH"),
-                amount: (100 * u64::pow(10, 9)),
+                amount_unlocked: (100 * u64::pow(10, 9)),
+                amount_locked: 0,
                 proof: None,
             },
         ];
@@ -354,23 +360,26 @@ mod tests {
         let tree_nodes = vec![
             TreeNode {
                 claimant: duplicate_pubkey,
-                amount: 10,
+                amount_unlocked: 10,
+                amount_locked: 0,
                 proof: None,
             },
             TreeNode {
                 claimant: duplicate_pubkey,
-                amount: 1,
+                amount_unlocked: 1,
+                amount_locked: 0,
                 proof: None,
             },
             TreeNode {
                 claimant: Pubkey::new_unique(),
-                amount: 0,
+                amount_unlocked: 0,
+                amount_locked: 0,
                 proof: None,
             },
         ];
 
         let tree = AirdropMerkleTree::new(tree_nodes, 0).unwrap();
         assert_eq!(tree.tree_nodes.len(), 2);
-        assert_eq!(tree.tree_nodes[0].amount, 11);
+        assert_eq!(tree.tree_nodes[0].amount_unlocked, 11);
     }
 }

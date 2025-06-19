@@ -11,8 +11,15 @@ pub type Result<T> = result::Result<T, MerkleTreeError>;
 pub struct CsvEntry {
     /// Pubkey of the claimant; will be responsible for signing the claim
     pub pubkey: String,
-    /// amount unlocked, (ui amount)
-    pub amount: f64,
+    /// amount unlocked immediately (ui amount)
+    #[serde(default)]
+    pub amount_unlocked: f64,
+    /// amount locked for vesting (ui amount)
+    #[serde(default)]
+    pub amount_locked: f64,
+    /// Legacy field for backward compatibility - if present, will be used as amount_unlocked
+    #[serde(default)]
+    pub amount: Option<f64>,
 }
 
 impl CsvEntry {
@@ -22,11 +29,35 @@ impl CsvEntry {
 
         let mut entries = Vec::new();
         for result in rdr.deserialize() {
-            let record: CsvEntry = result.unwrap();
+            let mut record: CsvEntry = result.unwrap();
+            
+            // Handle backward compatibility: if 'amount' field is present and amount_unlocked is 0,
+            // use 'amount' as amount_unlocked
+            if let Some(legacy_amount) = record.amount {
+                if record.amount_unlocked == 0.0 && record.amount_locked == 0.0 {
+                    record.amount_unlocked = legacy_amount;
+                }
+            }
+            
             entries.push(record);
         }
 
         Ok(entries)
+    }
+    
+    /// Get the total amount (unlocked + locked)
+    pub fn total_amount(&self) -> f64 {
+        self.amount_unlocked + self.amount_locked
+    }
+    
+    /// Get the unlocked amount
+    pub fn unlocked_amount(&self) -> f64 {
+        self.amount_unlocked
+    }
+    
+    /// Get the locked amount
+    pub fn locked_amount(&self) -> f64 {
+        self.amount_locked
     }
 }
 
@@ -45,6 +76,7 @@ mod tests {
             entries[0].pubkey,
             "4SX6nqv5VRLMoNfYM5phvHgcBNcBEwUEES4qPPjf1EqS"
         );
-        assert_eq!(entries[0].amount, 1000.0);
+        // This will work with legacy format where amount becomes amount_unlocked
+        assert_eq!(entries[0].unlocked_amount(), 1000.0);
     }
 }
